@@ -32,7 +32,7 @@ jobs:
           ruff format --check .
 
       - name: Type check with mypy
-        run: mypy code_agent_pipeline/
+        run: mypy --explicit-package-bases code_agent_pipeline
 
       - name: Run tests
         run: |

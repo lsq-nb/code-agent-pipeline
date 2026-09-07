@@ -2,6 +2,8 @@
 RAG 模块测试
 """
 
+import pytest
+
 from code_agent_pipeline.rag.embedder import EmbeddingService
 from code_agent_pipeline.rag.indexer import CodeIndexer
 from code_agent_pipeline.rag.retriever import CodeRetriever
@@ -35,14 +37,11 @@ class TestCodeRetriever:
         retriever = CodeRetriever(collection_name="test")
         assert retriever.collection_name == "test"
 
+    @pytest.mark.xfail(reason="ChromaDB Rust panic on this environment")
     def test_collection_count_empty(self):
         retriever = CodeRetriever(collection_name="te")
-        try:
-            count = retriever.collection_count()
-            assert count == 0
-        except Exception:
-            # ChromaDB may panic in some environments due to Rust SQLite binding issues
-            pytest.skip("ChromaDB not available in this environment")
+        count = retriever.collection_count()
+        assert count == 0
 
 
 class TestCodeIndexer:

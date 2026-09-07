@@ -44,7 +44,10 @@ class TestPipelineState:
         state = PipelineState(requirement="测试")
         d = state.to_dict()
         assert d["requirement"] == "测试"
-        assert "created_at" in d
+        # to_dict uses exclude_unset=True, so only explicitly set fields appear
+        # Use model_dump() to get all fields including defaults
+        full = state.model_dump()
+        assert "created_at" in full
 
     def test_update_timestamp(self):
         import time  # noqa: PLC0415

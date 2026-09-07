@@ -7,7 +7,7 @@ import json
 import re
 from typing import Any
 
-from ..models import PipelineState, PipelineStage, TaskStatus, AnalysisResult
+from ..models import AnalysisResult, PipelineStage, PipelineState, TaskStatus
 
 
 async def analyze_node(state: PipelineState) -> dict[str, Any]:
@@ -44,7 +44,9 @@ async def analyze_node(state: PipelineState) -> dict[str, Any]:
 def _build_analysis_prompt(state: PipelineState) -> str:
     """构建分析提示词"""
     context = state.project_context or "无特定项目上下文"
-    constraints = "\n".join(f"- {c}" for c in state.constraints) if state.constraints else "无特殊约束"
+    constraints = (
+        "\n".join(f"- {c}" for c in state.constraints) if state.constraints else "无特殊约束"
+    )
 
     return f"""\
 请对以下软件开发需求进行详细分析：
@@ -78,8 +80,9 @@ def _build_analysis_prompt(state: PipelineState) -> str:
 
 async def _call_llm_analysis(prompt: str, state: PipelineState) -> str:
     """调用 LLM 执行分析"""
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415 (局部导入)
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
+    from langchain_openai import ChatOpenAI  # noqa: PLC0415 (局部导入)
+
     from ..config import get_config  # noqa: PLC0415
 
     config = get_config()

@@ -7,7 +7,7 @@ import json
 import re
 from typing import Any
 
-from ..models import PipelineState, PipelineStage, DocumentationResult
+from ..models import DocumentationResult, PipelineStage, PipelineState
 
 
 async def document_node(state: PipelineState) -> dict[str, Any]:
@@ -67,7 +67,7 @@ def _build_document_prompt(state: PipelineState) -> str:
   "readme": "# 项目标题\\n\\n项目描述...",
   "api_docs": "## API 接口文档\\n\\n### GET /api/xxx...",
   "user_guide": "## 用户指南\\n\\n### 安装\\n...",
-  "changelog": "# 变更日志\\n\\n## v0.1.0 - {__import__('datetime').date.today().isoformat()}\\n...",
+  "changelog": "# 变更日志\\n\\n## v0.1.0 - {__import__("datetime").date.today().isoformat()}\\n...",
   "contributing_guidelines": "# 贡献指南\\n\\n..."
 }}
 ```
@@ -76,8 +76,8 @@ def _build_document_prompt(state: PipelineState) -> str:
 
 async def _call_llm_document(prompt: str, state: PipelineState) -> str:
     """调用 LLM 生成文档"""
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
+    from langchain_openai import ChatOpenAI  # noqa: PLC0415
 
     llm = ChatOpenAI(model="gpt-4o", temperature=0.2)
     response = await llm.ainvoke([HumanMessage(content=prompt)])

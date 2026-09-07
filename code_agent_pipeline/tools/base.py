@@ -4,7 +4,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -13,7 +13,7 @@ class ToolResult:
 
     success: bool
     data: Any = None
-    error: Optional[str] = None
+    error: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property

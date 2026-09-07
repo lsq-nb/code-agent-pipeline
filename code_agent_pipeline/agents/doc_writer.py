@@ -3,8 +3,6 @@
 负责生成 README、API 文档、用户指南等项目文档
 """
 
-from typing import Optional
-
 from crewai import Agent
 
 from ..rag.retriever import CodeRetriever
@@ -63,7 +61,7 @@ class DocWriter:
 请开始编写文档，输出 JSON 格式结果。
 """
 
-    def __init__(self, llm=None, rag_retriever: Optional[CodeRetriever] = None):
+    def __init__(self, llm=None, rag_retriever: CodeRetriever | None = None):
         self.llm = llm
         self.rag_retriever = rag_retriever
 
@@ -79,8 +77,7 @@ class DocWriter:
             allow_delegation=False,
         )
 
-    def generate(self, project_context: str, code_structure: str,
-                 feature_description: str) -> dict:
+    def generate(self, project_context: str, code_structure: str, feature_description: str) -> dict:
         """
         生成项目文档
 

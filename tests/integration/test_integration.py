@@ -2,9 +2,9 @@
 集成测试 - 测试完整的流水线组件协作
 """
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from pathlib import Path
 
 
 class TestGraphIntegration:
@@ -14,6 +14,7 @@ class TestGraphIntegration:
     async def test_graph_compiles(self):
         """测试图能成功编译"""
         from code_agent_pipeline.graph import build_pipeline_graph  # noqa: PLC0415
+
         graph = build_pipeline_graph()
         assert graph is not None
         # 编译应该不抛出异常
@@ -32,8 +33,8 @@ class TestGraphIntegration:
         )
 
         # 模拟 LLM 调用
-        with patch('code_agent_pipeline.nodes.analyze_node._call_llm_analysis') as mock_llm:
-            mock_llm.return_value = '''
+        with patch("code_agent_pipeline.nodes.analyze_node._call_llm_analysis") as mock_llm:
+            mock_llm.return_value = """
             ```json
             {
               "requirement_summary": "开发一个简单的REST API",
@@ -46,7 +47,7 @@ class TestGraphIntegration:
               "tasks": [{"id": "T001", "description": "创建用户模型"}]
             }
             ```
-            '''
+            """
             result = await analyze_node(state)
             assert result["current_stage"].value == "design"
             assert result["analysis"].requirement_summary == "开发一个简单的REST API"
@@ -62,8 +63,8 @@ class TestGraphIntegration:
             project_context="Python",
         )
 
-        with patch('code_agent_pipeline.nodes.code_node._call_llm_code') as mock_llm:
-            mock_llm.return_value = '''
+        with patch("code_agent_pipeline.nodes.code_node._call_llm_code") as mock_llm:
+            mock_llm.return_value = """
             ```json
             {
               "artifacts": [
@@ -81,7 +82,7 @@ class TestGraphIntegration:
               "notes": ""
             }
             ```
-            '''
+            """
             result = await code_node(state)
             assert result["current_stage"].value == "review"
             assert len(result["code_generation"].artifacts) == 1
@@ -93,12 +94,14 @@ class TestRAGIntegration:
     def test_retriever_init(self):
         """测试检索器初始化"""
         from code_agent_pipeline.rag.retriever import CodeRetriever  # noqa: PLC0415
+
         retriever = CodeRetriever(collection_name="test_collection")
         assert retriever.collection_name == "test_collection"
 
     def test_indexer_chunking(self):
         """测试索引器的文本分块"""
         from code_agent_pipeline.rag.indexer import CodeIndexer  # noqa: PLC0415
+
         indexer = CodeIndexer(chunk_size=100, chunk_overlap=10)
         long_text = "hello world " * 50
         chunks = indexer._chunk_text(long_text)
@@ -111,7 +114,11 @@ class TestRouter:
     """路由逻辑测试"""
 
     def test_router_approved(self):
-        from code_agent_pipeline.models import PipelineState, ReviewResult, ReviewVerdict  # noqa: PLC0415
+        from code_agent_pipeline.models import (  # noqa: PLC0415
+            PipelineState,
+            ReviewResult,
+            ReviewVerdict,
+        )
         from code_agent_pipeline.nodes.router_node import router_node  # noqa: PLC0415
 
         state = PipelineState(iteration_count=0, max_iterations=10)
@@ -121,7 +128,11 @@ class TestRouter:
         assert result == "next"
 
     def test_router_rejected(self):
-        from code_agent_pipeline.models import PipelineState, ReviewResult, ReviewVerdict  # noqa: PLC0415
+        from code_agent_pipeline.models import (  # noqa: PLC0415
+            PipelineState,
+            ReviewResult,
+            ReviewVerdict,
+        )
         from code_agent_pipeline.nodes.router_node import router_node  # noqa: PLC0415
 
         state = PipelineState(iteration_count=0, max_iterations=10)

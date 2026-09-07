@@ -3,8 +3,6 @@
 负责生成测试用例、执行测试、分析覆盖率
 """
 
-from typing import Optional
-
 from crewai import Agent
 
 from ..rag.retriever import CodeRetriever
@@ -61,8 +59,12 @@ class Tester:
 请开始编写测试用例，输出 JSON 格式结果。
 """
 
-    def __init__(self, llm=None, test_runner: Optional[TestRunnerTool] = None,
-                 rag_retriever: Optional[CodeRetriever] = None):
+    def __init__(
+        self,
+        llm=None,
+        test_runner: TestRunnerTool | None = None,
+        rag_retriever: CodeRetriever | None = None,
+    ):
         self.llm = llm
         self.test_runner = test_runner or TestRunnerTool()
         self.rag_retriever = rag_retriever
@@ -97,8 +99,9 @@ class Tester:
         result = self.agent.execute_task(prompt)
         return self._parse_result(result)
 
-    def run_tests(self, path: str = ".", mark: Optional[str] = None,
-                  pattern: Optional[str] = None) -> dict:
+    def run_tests(
+        self, path: str = ".", mark: str | None = None, pattern: str | None = None
+    ) -> dict:
         """
         执行测试
 

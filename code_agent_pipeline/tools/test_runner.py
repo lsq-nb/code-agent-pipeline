@@ -5,7 +5,7 @@
 
 import subprocess
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from .base import ToolBase, ToolResult
 
@@ -45,8 +45,7 @@ class TestRunnerTool(ToolBase):
         except Exception as e:
             return ToolResult.fail(error=f"测试执行失败: {str(e)}")
 
-    def _run(self, path: Path, mark: Optional[str] = None,
-             pattern: Optional[str] = None) -> dict:
+    def _run(self, path: Path, mark: str | None = None, pattern: str | None = None) -> dict:
         """运行测试"""
         cmd = ["pytest", str(path), "-v", "--tb=short"]
 
@@ -75,7 +74,8 @@ class TestRunnerTool(ToolBase):
     def _coverage(self, path: Path) -> dict:
         """生成覆盖率报告"""
         cmd = [
-            "pytest", str(path),
+            "pytest",
+            str(path),
             "--cov=.",
             "--cov-report=term-missing",
             "--cov-report=html:htmlcov",

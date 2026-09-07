@@ -6,8 +6,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from ...models import PipelineState, RequirementInput, PipelineResponse, PipelineStage
 from ...graph import compile_pipeline
+from ...models import PipelineResponse, PipelineStage, PipelineState, TaskStatus
 
 router = APIRouter()
 
@@ -18,6 +18,7 @@ compiled_graph = None
 
 class PipelineRequest(BaseModel):
     """流水线执行请求"""
+
     requirement: str
     project_context: str = ""
     constraints: list[str] = []

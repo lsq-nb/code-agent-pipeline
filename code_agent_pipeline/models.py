@@ -4,16 +4,15 @@
 """
 
 from datetime import datetime
-from enum import Enum
-from typing import Any, Optional
+from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
-
 
 # ── 枚举定义 ──────────────────────────────────────────────────────────────────
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     """任务状态枚举"""
 
     PENDING = "pending"
@@ -25,7 +24,7 @@ class TaskStatus(str, Enum):
     NEEDS_FIX = "needs_fix"
 
 
-class ReviewVerdict(str, Enum):
+class ReviewVerdict(StrEnum):
     """代码审查判定"""
 
     APPROVED = "approved"
@@ -34,7 +33,7 @@ class ReviewVerdict(str, Enum):
     COMMENT_ONLY = "comment_only"
 
 
-class CodeQualityLevel(str, Enum):
+class CodeQualityLevel(StrEnum):
     """代码质量等级"""
 
     EXCELLENT = "excellent"
@@ -43,7 +42,7 @@ class CodeQualityLevel(str, Enum):
     POOR = "poor"
 
 
-class AgentRole(str, Enum):
+class AgentRole(StrEnum):
     """智能体角色枚举"""
 
     REQUIREMENT_ANALYST = "requirement_analyst"
@@ -55,7 +54,7 @@ class AgentRole(str, Enum):
     ORCHESTRATOR = "orchestrator"
 
 
-class PipelineStage(str, Enum):
+class PipelineStage(StrEnum):
     """流水线阶段枚举"""
 
     ANALYZE = "analyze"
@@ -74,16 +73,10 @@ class RequirementInput(BaseModel):
     """需求输入"""
 
     requirement: str = Field(..., description="需求描述")
-    project_context: str = Field(
-        default="", description="项目上下文（技术栈、框架等）"
-    )
-    constraints: list[str] = Field(
-        default=[], description="约束条件（性能、安全等）"
-    )
+    project_context: str = Field(default="", description="项目上下文（技术栈、框架等）")
+    constraints: list[str] = Field(default=[], description="约束条件（性能、安全等）")
     extra_instructions: str = Field(default="", description="额外说明")
-    git_repo_url: Optional[str] = Field(
-        default=None, description="关联的 Git 仓库 URL"
-    )
+    git_repo_url: str | None = Field(default=None, description="关联的 Git 仓库 URL")
 
     @field_validator("requirement")
     @classmethod
@@ -99,7 +92,7 @@ class UpdateInput(BaseModel):
     task_id: str
     status: TaskStatus
     message: str = ""
-    data: Optional[dict[str, Any]] = None
+    data: dict[str, Any] | None = None
 
 
 # ── 中间状态模型 ──────────────────────────────────────────────────────────────
@@ -124,7 +117,7 @@ class DesignResult(BaseModel):
     architecture_pattern: str
     module_structure: list[str]
     api_design: list[dict[str, Any]]
-    database_schema: Optional[dict[str, Any]] = None
+    database_schema: dict[str, Any] | None = None
     data_flow: str
     error_handling_strategy: str
     security_considerations: list[str]
@@ -161,7 +154,7 @@ class ReviewResult(BaseModel):
     suggestions: list[str] = Field(default=[])
     security_findings: list[str] = Field(default=[])
     performance_findings: list[str] = Field(default=[])
-    diff_command: Optional[str] = None
+    diff_command: str | None = None
 
 
 class TestResult(BaseModel):
@@ -198,15 +191,15 @@ class PipelineState(BaseModel):
     requirement: str = ""
     project_context: str = ""
     constraints: list[str] = Field(default=[])
-    git_repo_url: Optional[str] = None
+    git_repo_url: str | None = None
 
     # 阶段产物
-    analysis: Optional[AnalysisResult] = None
-    design: Optional[DesignResult] = None
-    code_generation: Optional[CodeGenerationResult] = None
-    review: Optional[ReviewResult] = None
-    testing: Optional[TestResult] = None
-    documentation: Optional[DocumentationResult] = None
+    analysis: AnalysisResult | None = None
+    design: DesignResult | None = None
+    code_generation: CodeGenerationResult | None = None
+    review: ReviewResult | None = None
+    testing: TestResult | None = None
+    documentation: DocumentationResult | None = None
 
     # 控制流
     current_stage: PipelineStage = PipelineStage.ANALYZE
@@ -259,7 +252,7 @@ class PipelineResponse(BaseModel):
     stage: str
     status: str
     message: str = ""
-    result: Optional[dict[str, Any]] = None
+    result: dict[str, Any] | None = None
     errors: list[str] = Field(default=[])
 
 

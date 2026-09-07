@@ -4,7 +4,6 @@
 """
 
 from pathlib import Path
-from typing import Optional
 
 import chromadb
 
@@ -17,9 +16,12 @@ class CodeRetriever:
     编码风格指南等上下文信息。
     """
 
-    def __init__(self, collection_name: str = "code_standards",
-                 persist_directory: str = ".cache/chroma",
-                 embedder=None):
+    def __init__(
+        self,
+        collection_name: str = "code_standards",
+        persist_directory: str = ".cache/chroma",
+        embedder=None,
+    ):
         """
         初始化检索器
 
@@ -31,7 +33,7 @@ class CodeRetriever:
         self.collection_name = collection_name
         self.persist_directory = persist_directory
         self.embedder = embedder
-        self._client: Optional[chromadb.Client] = None
+        self._client: chromadb.Client | None = None
         self._collection = None
 
     def get_client(self) -> chromadb.Client:
@@ -70,8 +72,7 @@ class CodeRetriever:
 
         collection.upsert(ids=ids, documents=texts, metadatas=metadatas)
 
-    def search(self, query: str, top_k: int = 5,
-               filter_dict: Optional[dict] = None) -> list[dict]:
+    def search(self, query: str, top_k: int = 5, filter_dict: dict | None = None) -> list[dict]:
         """
         搜索相关文档
 
@@ -95,16 +96,19 @@ class CodeRetriever:
 
         documents = []
         for i in range(len(results["ids"][0])):
-            documents.append({
-                "id": results["ids"][0][i],
-                "document": results["documents"][0][i],
-                "metadata": results["metadatas"][0][i],
-                "distance": results["distances"][0][i],
-            })
+            documents.append(
+                {
+                    "id": results["ids"][0][i],
+                    "document": results["documents"][0][i],
+                    "metadata": results["metadatas"][0][i],
+                    "distance": results["distances"][0][i],
+                }
+            )
         return documents
 
-    def search_with_embedding(self, embedding: list[float], top_k: int = 5,
-                              filter_dict: Optional[dict] = None) -> list[dict]:
+    def search_with_embedding(
+        self, embedding: list[float], top_k: int = 5, filter_dict: dict | None = None
+    ) -> list[dict]:
         """使用嵌入向量进行搜索"""
         collection = self.get_collection()
         where = filter_dict if filter_dict else None
@@ -118,12 +122,14 @@ class CodeRetriever:
 
         documents = []
         for i in range(len(results["ids"][0])):
-            documents.append({
-                "id": results["ids"][0][i],
-                "document": results["documents"][0][i],
-                "metadata": results["metadatas"][0][i],
-                "distance": results["distances"][0][i],
-            })
+            documents.append(
+                {
+                    "id": results["ids"][0][i],
+                    "document": results["documents"][0][i],
+                    "metadata": results["metadatas"][0][i],
+                    "distance": results["distances"][0][i],
+                }
+            )
         return documents
 
     def delete_collection(self) -> None:

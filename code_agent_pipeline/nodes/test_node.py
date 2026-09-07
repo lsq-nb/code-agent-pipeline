@@ -7,7 +7,7 @@ import json
 import re
 from typing import Any
 
-from ..models import PipelineState, PipelineStage, TestResult
+from ..models import PipelineStage, PipelineState, TestResult
 
 
 async def test_node(state: PipelineState) -> dict[str, Any]:
@@ -39,8 +39,8 @@ async def test_node(state: PipelineState) -> dict[str, Any]:
 
 async def _generate_test_cases(state: PipelineState) -> dict:
     """生成测试用例"""
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
+    from langchain_openai import ChatOpenAI  # noqa: PLC0415
 
     code_snippet = ""
     if state.code_generation:

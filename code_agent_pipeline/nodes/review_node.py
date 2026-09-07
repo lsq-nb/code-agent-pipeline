@@ -7,7 +7,7 @@ import json
 import re
 from typing import Any
 
-from ..models import PipelineState, PipelineStage, TaskStatus, ReviewResult, ReviewVerdict
+from ..models import PipelineStage, PipelineState, ReviewResult, ReviewVerdict
 
 
 async def review_node(state: PipelineState) -> dict[str, Any]:
@@ -43,7 +43,9 @@ async def review_node(state: PipelineState) -> dict[str, Any]:
     summary = _summarize_reviews(all_reviews, state)
     state.review = summary
 
-    state.add_message("review", f"审查完成，判定: {summary.verdict.value}, 平均分: {summary.quality_score:.1f}")
+    state.add_message(
+        "review", f"审查完成，判定: {summary.verdict.value}, 平均分: {summary.quality_score:.1f}"
+    )
     state.update_timestamp()
 
     return {
@@ -55,8 +57,8 @@ async def review_node(state: PipelineState) -> dict[str, Any]:
 
 async def _review_single_file(artifact, state: PipelineState) -> dict:
     """审查单个代码文件"""
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
+    from langchain_openai import ChatOpenAI  # noqa: PLC0415
 
     prompt = f"""\
 请审查以下代码的质量、安全性和性能：

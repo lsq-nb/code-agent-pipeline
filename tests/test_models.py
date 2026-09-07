@@ -1,5 +1,4 @@
-from multi_agent_pipeline import MultiAgentPipeline
-from multi_agent_pipeline.models import PipelineState, PipelineStage, TaskStatus
+from multi_agent_pipeline.models import PipelineStage, PipelineState, TaskStatus
 
 state = PipelineState(
     requirement="开发一个用户认证系统",

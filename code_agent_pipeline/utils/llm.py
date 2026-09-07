@@ -3,12 +3,10 @@ LLM 工厂函数
 创建和获取 LLM 实例
 """
 
-from typing import Optional
-
 from ..config import get_config
 
 
-def create_llm(model: Optional[str] = None, temperature: Optional[float] = None):
+def create_llm(model: str | None = None, temperature: float | None = None):
     """
     创建 LLM 实例
 
@@ -22,6 +20,7 @@ def create_llm(model: Optional[str] = None, temperature: Optional[float] = None)
 
     if provider == "openai":
         from langchain_openai import ChatOpenAI  # noqa: PLC0415
+
         return ChatOpenAI(
             model=model,
             temperature=temp,
@@ -30,6 +29,7 @@ def create_llm(model: Optional[str] = None, temperature: Optional[float] = None)
         )
     elif provider == "anthropic":
         from langchain_anthropic import ChatAnthropic  # noqa: PLC0415
+
         return ChatAnthropic(
             model=model,
             temperature=temp,
@@ -37,6 +37,7 @@ def create_llm(model: Optional[str] = None, temperature: Optional[float] = None)
     else:
         # 默认使用 OpenAI 兼容接口
         from langchain_openai import ChatOpenAI  # noqa: PLC0415
+
         return ChatOpenAI(
             model=model,
             temperature=temp,

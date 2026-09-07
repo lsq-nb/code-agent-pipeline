@@ -3,8 +3,6 @@
 负责代码质量审查、安全扫描、性能分析
 """
 
-from typing import Optional
-
 from crewai import Agent
 
 from ..rag.retriever import CodeRetriever
@@ -67,7 +65,7 @@ class Reviewer:
 请开始审查，输出 JSON 格式结果。
 """
 
-    def __init__(self, llm=None, rag_retriever: Optional[CodeRetriever] = None):
+    def __init__(self, llm=None, rag_retriever: CodeRetriever | None = None):
         self.llm = llm
         self.rag_retriever = rag_retriever
 
@@ -83,8 +81,7 @@ class Reviewer:
             allow_delegation=False,
         )
 
-    def review(self, code_content: str, project_context: str = "",
-               file_path: str = "") -> dict:
+    def review(self, code_content: str, project_context: str = "", file_path: str = "") -> dict:
         """
         审查代码
 

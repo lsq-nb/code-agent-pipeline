@@ -4,7 +4,6 @@
 """
 
 from pathlib import Path
-from typing import Optional
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
@@ -17,10 +16,8 @@ class LLMConfig(BaseModel):
     model: str = Field(default="gpt-4o", description="模型名称")
     temperature: float = Field(default=0.2, ge=0.0, le=1.0, description="采样温度")
     max_tokens: int = Field(default=4096, description="最大输出 token 数")
-    api_key: Optional[str] = Field(default=None, description="API 密钥")
-    base_url: Optional[str] = Field(
-        default=None, description="API 端点（兼容 OpenAI 格式时填写）"
-    )
+    api_key: str | None = Field(default=None, description="API 密钥")
+    base_url: str | None = Field(default=None, description="API 端点（兼容 OpenAI 格式时填写）")
 
 
 class GraphConfig(BaseModel):
@@ -35,9 +32,7 @@ class GraphConfig(BaseModel):
 class RAGConfig(BaseModel):
     """RAG 检索配置"""
 
-    embedding_model: str = Field(
-        default="text-embedding-3-small", description="嵌入模型"
-    )
+    embedding_model: str = Field(default="text-embedding-3-small", description="嵌入模型")
     top_k: int = Field(default=5, description="检索返回条数")
     chunk_size: int = Field(default=512, description="文档分块大小")
     chunk_overlap: int = Field(default=64, description="分块重叠大小")
@@ -105,7 +100,7 @@ class PipelineConfig(BaseSettings):
 
 
 # 全局配置实例（懒加载）
-_config: Optional[PipelineConfig] = None
+_config: PipelineConfig | None = None
 
 
 def get_config() -> PipelineConfig:

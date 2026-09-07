@@ -2,11 +2,9 @@
 RAG 模块测试
 """
 
-import pytest
-
-from code_agent_pipeline.rag.retriever import CodeRetriever
-from code_agent_pipeline.rag.indexer import CodeIndexer
 from code_agent_pipeline.rag.embedder import EmbeddingService
+from code_agent_pipeline.rag.indexer import CodeIndexer
+from code_agent_pipeline.rag.retriever import CodeRetriever
 
 
 class TestEmbeddingService:

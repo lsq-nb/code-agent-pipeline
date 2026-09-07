@@ -3,9 +3,9 @@ MCP（Model Context Protocol）客户端
 用于与 MCP 服务器通信，获取工具上下文
 """
 
-import asyncio
 import json
-from typing import Any, Optional
+from typing import Any
+
 
 class MCPClient:
     """
@@ -17,9 +17,13 @@ class MCPClient:
     注意：此实现为简化版本，生产环境建议使用官方 mcp SDK。
     """
 
-    def __init__(self, server_name: str, command: Optional[str] = None,
-                 args: Optional[list[str]] = None,
-                 url: Optional[str] = None):
+    def __init__(
+        self,
+        server_name: str,
+        command: str | None = None,
+        args: list[str] | None = None,
+        url: str | None = None,
+    ):
         """
         初始化 MCP 客户端
 
@@ -68,7 +72,7 @@ class MCPClient:
         """
         if tool_name not in self._tools:
             available = list(self._tools.keys())
-            raise ValueError("Tool '{}' not found. Available: {}".format(tool_name, available))
+            raise ValueError(f"Tool '{tool_name}' not found. Available: {available}")
             available = list(self._tools.keys())
             raise ValueError(f"工具 '{tool_name}' 不存在。可用工具: {available}")
 
@@ -97,16 +101,18 @@ class MCPClient:
             )
             self._connected = True
             # 初始化握手
-            init_msg = json.dumps({
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": "2024-11-05",
-                    "capabilities": {},
-                    "clientInfo": {"name": "code-agent-pipeline", "version": "0.1.0"},
-                },
-            })
+            init_msg = json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2024-11-05",
+                        "capabilities": {},
+                        "clientInfo": {"name": "code-agent-pipeline", "version": "0.1.0"},
+                    },
+                }
+            )
             self._proc.stdin.write(init_msg + "\n")
             self._proc.stdin.flush()
             return True
@@ -120,8 +126,7 @@ class MCPClient:
         self._connected = True
         return True
 
-    def register_tool(self, name: str, description: str,
-                      parameters: dict[str, Any]) -> None:
+    def register_tool(self, name: str, description: str, parameters: dict[str, Any]) -> None:
         """注册工具（手动模式）"""
         self._tools[name] = {
             "name": name,

@@ -5,8 +5,6 @@
 
 from fastapi import APIRouter
 
-from ...models import TaskHistoryItem, TaskStatus
-
 router = APIRouter()
 
 

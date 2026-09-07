@@ -3,13 +3,9 @@
 负责根据设计文档生成高质量代码
 """
 
-from typing import Optional
-
 from crewai import Agent
 
 from ..rag.retriever import CodeRetriever
-from ..tools.file_tool import FileTool
-from ..tools.code_formatter import CodeFormatterTool
 
 
 class Coder:
@@ -74,9 +70,13 @@ class Coder:
 请开始编写代码，输出 JSON 格式结果。
 """
 
-    def __init__(self, llm=None, tools=None,
-                 rag_retriever: Optional[CodeRetriever] = None,
-                 target_languages: Optional[list[str]] = None):
+    def __init__(
+        self,
+        llm=None,
+        tools=None,
+        rag_retriever: CodeRetriever | None = None,
+        target_languages: list[str] | None = None,
+    ):
         self.llm = llm
         self.rag_retriever = rag_retriever
         self.target_languages = target_languages or ["python"]
@@ -126,6 +126,7 @@ class Coder:
     def _format_design(self, design: dict) -> str:
         """格式化设计文档为文本"""
         import json  # noqa: PLC0415
+
         return json.dumps(design, ensure_ascii=False, indent=2)
 
     def _parse_result(self, raw_output: str) -> dict:

@@ -3,8 +3,6 @@
 负责系统设计、模块划分、API 设计、数据库建模
 """
 
-from typing import Optional
-
 from crewai import Agent
 
 from ..rag.retriever import CodeRetriever
@@ -68,7 +66,7 @@ class Architect:
 请开始设计，输出 JSON 格式结果。
 """
 
-    def __init__(self, llm=None, rag_retriever: Optional[CodeRetriever] = None):
+    def __init__(self, llm=None, rag_retriever: CodeRetriever | None = None):
         self.llm = llm
         self.rag_retriever = rag_retriever
 

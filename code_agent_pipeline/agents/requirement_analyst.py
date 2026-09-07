@@ -3,11 +3,9 @@
 负责解析用户需求，拆分子任务，识别技术约束
 """
 
+
 from crewai import Agent
 
-from ..models import AgentRole
-from ..tools.git_tool import GitTool
-from ..tools.file_tool import FileTool
 from ..rag.retriever import CodeRetriever
 
 
@@ -70,7 +68,7 @@ class RequirementAnalyst:
 请开始分析，输出 JSON 格式结果。
 """
 
-    def __init__(self, llm=None, tools=None, rag_retriever: Optional[CodeRetriever] = None):
+    def __init__(self, llm=None, tools=None, rag_retriever: CodeRetriever | None = None):
         """
         初始化需求分析师
 
@@ -79,7 +77,6 @@ class RequirementAnalyst:
             tools: 工具列表
             rag_retriever: RAG 检索器（用于获取代码规范上下文）
         """
-        from typing import Optional  # noqa: PLC0415
         self.llm = llm
         self.tools = tools or []
         self.rag_retriever = rag_retriever
@@ -98,8 +95,9 @@ class RequirementAnalyst:
             allow_delegation=False,
         )
 
-    def analyze(self, requirement: str, project_context: str = "",
-                constraints: Optional[list[str]] = None) -> dict:
+    def analyze(
+        self, requirement: str, project_context: str = "", constraints: list[str] | None = None
+    ) -> dict:
         """
         分析需求
 

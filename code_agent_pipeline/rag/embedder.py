@@ -7,9 +7,6 @@ import hashlib
 import json
 import os
 from pathlib import Path
-from typing import Optional
-
-import numpy as np
 
 
 class EmbeddingService:
@@ -22,9 +19,12 @@ class EmbeddingService:
     - 内存缓存（避免重复计算）
     """
 
-    def __init__(self, model: str = "text-embedding-3-small",
-                 api_key: Optional[str] = None,
-                 base_url: Optional[str] = None):
+    def __init__(
+        self,
+        model: str = "text-embedding-3-small",
+        api_key: str | None = None,
+        base_url: str | None = None,
+    ):
         self.model = model
         self.api_key = api_key or os.getenv("OPENAI_API_KEY", "")
         self.base_url = base_url or os.getenv("OPENAI_BASE_URL")
@@ -61,6 +61,7 @@ class EmbeddingService:
         if not self.api_key:
             # 无 API Key 时返回随机向量作为占位
             import random  # noqa: PLC0415
+
             random.seed(key)  # noqa: S311
             embedding = [random.random() for _ in range(1536)]
         elif self.base_url and "ollama" in self.base_url.lower():
@@ -80,6 +81,7 @@ class EmbeddingService:
         """调用 OpenAI 嵌入 API"""
         try:
             from openai import OpenAI  # noqa: PLC0415 (局部导入)
+
             client = OpenAI(api_key=self.api_key, base_url=self.base_url)
             response = client.embeddings.create(
                 model=self.model,
@@ -93,6 +95,7 @@ class EmbeddingService:
     def _embed_ollama(self, text: str) -> list[float]:
         """调用 Ollama 本地嵌入"""
         import requests  # noqa: PLC0415
+
         resp = requests.post(
             f"{self.base_url}/api/embeddings",
             json={"model": self.model, "prompt": text},

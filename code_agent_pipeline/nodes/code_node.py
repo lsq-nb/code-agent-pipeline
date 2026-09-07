@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from ..models import PipelineState, PipelineStage, TaskStatus, CodeGenerationResult, CodeArtifact
+from ..models import CodeArtifact, CodeGenerationResult, PipelineStage, PipelineState
 
 
 async def code_node(state: PipelineState) -> dict[str, Any]:
@@ -87,8 +87,8 @@ def _build_code_prompt(state: PipelineState) -> str:
 
 async def _call_llm_code(prompt: str, state: PipelineState) -> str:
     """调用 LLM 生成代码"""
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
+    from langchain_openai import ChatOpenAI  # noqa: PLC0415
 
     llm = ChatOpenAI(model="gpt-4o", temperature=0.1)
     response = await llm.ainvoke([HumanMessage(content=prompt)])

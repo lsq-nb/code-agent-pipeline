@@ -3,13 +3,12 @@
 """
 
 import pytest
-from pathlib import Path
 
-from code_agent_pipeline.tools.base import ToolBase, ToolResult
-from code_agent_pipeline.tools.git_tool import GitTool
+from code_agent_pipeline.tools.base import ToolResult
 from code_agent_pipeline.tools.file_tool import FileTool
-from code_agent_pipeline.tools.test_runner import TestRunnerTool
+from code_agent_pipeline.tools.git_tool import GitTool
 from code_agent_pipeline.tools.mcp_client import MCPClient
+from code_agent_pipeline.tools.test_runner import TestRunnerTool
 
 
 class TestToolBase:

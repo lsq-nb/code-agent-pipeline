@@ -5,10 +5,9 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 
-def setup_logging(level: str = "INFO", log_file: Optional[str] = None) -> None:
+def setup_logging(level: str = "INFO", log_file: str | None = None) -> None:
     """
     配置日志系统
 

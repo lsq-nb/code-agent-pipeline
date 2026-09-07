@@ -5,7 +5,6 @@
 
 import re
 from pathlib import Path
-from typing import Optional
 
 from .retriever import CodeRetriever
 
@@ -20,20 +19,38 @@ class CodeIndexer:
 
     # 常见的规范文件模式
     SPEC_PATTERNS = [
-        "*.md", "*.rst", "*.txt",
-        "*.py", "*.js", "*.ts",
-        "*.yaml", "*.yml", "*.json",
+        "*.md",
+        "*.rst",
+        "*.txt",
+        "*.py",
+        "*.js",
+        "*.ts",
+        "*.yaml",
+        "*.yml",
+        "*.json",
     ]
 
     # 需要排除的目录
     EXCLUDE_DIRS = {
-        "node_modules", ".git", "__pycache__", "venv", ".venv",
-        "env", ".cache", "build", "dist", ".tox", ".mypy_cache",
-        ".pytest_cache", ".ruff_cache", "htmlcov",
+        "node_modules",
+        ".git",
+        "__pycache__",
+        "venv",
+        ".venv",
+        "env",
+        ".cache",
+        "build",
+        "dist",
+        ".tox",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        "htmlcov",
     }
 
-    def __init__(self, retriever: Optional[CodeRetriever] = None,
-                 chunk_size: int = 512, chunk_overlap: int = 64):
+    def __init__(
+        self, retriever: CodeRetriever | None = None, chunk_size: int = 512, chunk_overlap: int = 64
+    ):
         self.retriever = retriever or CodeRetriever()
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
@@ -64,16 +81,20 @@ class CodeIndexer:
             chunks = self._chunk_text(content)
             for i, chunk in enumerate(chunks):
                 doc_id = f"{source_type}::{file_path.stem}::{i}"
-                self.retriever.add_documents([{
-                    "id": doc_id,
-                    "text": chunk,
-                    "metadata": {
-                        "source": str(file_path),
-                        "source_type": source_type,
-                        "chunk_index": i,
-                        "total_chunks": len(chunks),
-                    },
-                }])
+                self.retriever.add_documents(
+                    [
+                        {
+                            "id": doc_id,
+                            "text": chunk,
+                            "metadata": {
+                                "source": str(file_path),
+                                "source_type": source_type,
+                                "chunk_index": i,
+                                "total_chunks": len(chunks),
+                            },
+                        }
+                    ]
+                )
                 count += 1
 
         return count
@@ -96,11 +117,15 @@ class CodeIndexer:
                 base_meta = doc.get("metadata", {})
                 base_meta["chunk_index"] = i
                 base_meta["total_chunks"] = len(chunks)
-                self.retriever.add_documents([{
-                    "id": f"doc::{count}",
-                    "text": chunk,
-                    "metadata": base_meta,
-                }])
+                self.retriever.add_documents(
+                    [
+                        {
+                            "id": f"doc::{count}",
+                            "text": chunk,
+                            "metadata": base_meta,
+                        }
+                    ]
+                )
                 count += 1
         return count
 
@@ -178,7 +203,7 @@ class CodeIndexer:
                             current = current[os_start:]
                         # 字符级切分
                         for i in range(0, len(line), self.chunk_size - self.chunk_overlap):
-                            chunk = line[i:i + self.chunk_size]
+                            chunk = line[i : i + self.chunk_size]
                             if chunk.strip():
                                 chunks.append(chunk.strip())
                         current = ""

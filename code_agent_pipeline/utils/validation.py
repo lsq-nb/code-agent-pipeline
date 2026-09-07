@@ -3,7 +3,6 @@
 """
 
 import re
-from typing import Optional
 
 
 def validate_requirement(requirement: str) -> tuple[bool, str]:
@@ -54,5 +53,5 @@ def validate_code_output(code: str, language: str) -> tuple[bool, list[str]]:
 def sanitize_input(text: str, max_length: int = 10000) -> str:
     """清理输入文本"""
     # 移除危险字符
-    text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', text)
+    text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", text)
     return text[:max_length]

@@ -7,7 +7,7 @@ import json
 import re
 from typing import Any
 
-from ..models import PipelineState, PipelineStage, TaskStatus, DesignResult
+from ..models import DesignResult, PipelineStage, PipelineState
 
 
 async def design_node(state: PipelineState) -> dict[str, Any]:
@@ -73,8 +73,8 @@ def _build_design_prompt(state: PipelineState) -> str:
 
 async def _call_llm_design(prompt: str, state: PipelineState) -> str:
     """调用 LLM 执行设计"""
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
+    from langchain_openai import ChatOpenAI  # noqa: PLC0415
 
     llm = ChatOpenAI(model="gpt-4o", temperature=0.3)
     response = await llm.ainvoke([HumanMessage(content=prompt)])

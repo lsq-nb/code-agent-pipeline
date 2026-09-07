@@ -3,10 +3,9 @@
 用于读写、搜索、创建项目文件
 """
 
-from typing import Any, Optional
-
 import re
 from pathlib import Path
+from typing import Any
 
 from .base import ToolBase, ToolResult
 
@@ -20,7 +19,7 @@ class FileTool(ToolBase):
         "列出目录结构、获取文件统计信息等。用于代码生成和管理。"
     )
 
-    def __init__(self, root: Optional[Path] = None):
+    def __init__(self, root: Path | None = None):
         self.root = root or Path.cwd()
 
     def execute(self, action: str, **kwargs: Any) -> ToolResult:
@@ -83,8 +82,9 @@ class FileTool(ToolBase):
             "append": append,
         }
 
-    def _search(self, pattern: str, path: Optional[str] = None,
-                exclude: Optional[list[str]] = None) -> list[dict]:
+    def _search(
+        self, pattern: str, path: str | None = None, exclude: list[str] | None = None
+    ) -> list[dict]:
         """在文件中搜索文本"""
         search_root = self._resolve(path) if path else self.root
         exclude_exts = set(exclude or [])
@@ -97,15 +97,17 @@ class FileTool(ToolBase):
             try:
                 content = fp.read_text(encoding="utf-8", errors="ignore")
                 if re.search(pattern, content):
-                    matches.append({
-                        "path": str(fp.relative_to(self.root)),
-                        "line": content.count('\n', 0, content.find(pattern)) + 1,
-                    })
+                    matches.append(
+                        {
+                            "path": str(fp.relative_to(self.root)),
+                            "line": content.count("\n", 0, content.find(pattern)) + 1,
+                        }
+                    )
             except (UnicodeDecodeError, PermissionError):
                 continue
         return matches[:50]  # 限制结果数量
 
-    def _list(self, path: Optional[str] = None, recursive: bool = False) -> list[str]:
+    def _list(self, path: str | None = None, recursive: bool = False) -> list[str]:
         """列出目录内容"""
         target = self._resolve(path) if path else self.root
         if recursive:

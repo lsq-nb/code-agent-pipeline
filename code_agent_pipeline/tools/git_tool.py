@@ -3,11 +3,10 @@ Git 操作工具
 集成 gitpython 实现仓库克隆、分支管理、提交等操作
 """
 
-import subprocess
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
-from git import Repo, GitCommandError
+from git import Repo
 
 from .base import ToolBase, ToolResult
 
@@ -21,7 +20,7 @@ class GitTool(ToolBase):
         "用于与代码仓库交互，获取历史代码和规范文档。"
     )
 
-    def __init__(self, workdir: Optional[Path] = None):
+    def __init__(self, workdir: Path | None = None):
         self.workdir = workdir or Path.cwd()
 
     def execute(self, action: str, **kwargs: Any) -> ToolResult:
@@ -63,14 +62,14 @@ class GitTool(ToolBase):
         except Exception as e:
             return ToolResult.fail(error=f"Git 操作失败: {str(e)}")
 
-    def _get_repo(self, path: Optional[Path] = None) -> Repo:
+    def _get_repo(self, path: Path | None = None) -> Repo:
         """获取或打开 Git 仓库"""
         target = path or self.workdir
         if target.exists() and (target / ".git").exists():
             return Repo(target)
         raise FileNotFoundError(f"不是 Git 仓库: {target}")
 
-    def _clone(self, repo_url: str, target_dir: Optional[str] = None) -> dict:
+    def _clone(self, repo_url: str, target_dir: str | None = None) -> dict:
         """克隆仓库"""
         target = Path(target_dir) if target_dir else self.workdir / Path(repo_url).stem
         target.mkdir(parents=True, exist_ok=True)
@@ -103,7 +102,7 @@ class GitTool(ToolBase):
         repo = self._get_repo()
         return [ref.name for ref in repo.refs]
 
-    def _commit(self, message: str, files: Optional[list[str]] = None) -> dict:
+    def _commit(self, message: str, files: list[str] | None = None) -> dict:
         """创建提交"""
         repo = self._get_repo()
         if files:
@@ -128,7 +127,7 @@ class GitTool(ToolBase):
             for c in commits
         ]
 
-    def _diff(self, target: Optional[str] = None) -> str:
+    def _diff(self, target: str | None = None) -> str:
         """获取差异"""
         repo = self._get_repo()
         if target:
@@ -164,7 +163,7 @@ class GitTool(ToolBase):
                 result[-1]["line"] = line.strip()
         return result[:20]  # 限制返回行数
 
-    def clone_repo(self, repo_url: str, target_dir: Optional[str] = None) -> Path:
+    def clone_repo(self, repo_url: str, target_dir: str | None = None) -> Path:
         """便捷方法：克隆仓库到指定目录"""
         result = self._clone(repo_url=repo_url, target_dir=target_dir)
         return Path(result["path"])

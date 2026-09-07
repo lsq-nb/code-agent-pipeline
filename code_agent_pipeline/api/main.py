@@ -3,12 +3,11 @@ API 服务层 - FastAPI 应用
 提供 RESTful 接口，暴露流水线功能
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ..config import get_config
-from ..models import PipelineStage, TaskStatus
-from .routers import pipeline_router, task_router, health_router
+from .routers import health_router, pipeline_router, task_router
 
 app = FastAPI(
     title="代码研发辅助多智能体流水线",
@@ -37,7 +36,7 @@ app.include_router(task_router, prefix="/api/tasks", tags=["任务管理"])
 async def startup_event():
     """服务启动时的初始化"""
     config = get_config()
-    print(f"[Pipeline] 服务启动，配置加载完成")
+    print("[Pipeline] 服务启动，配置加载完成")
     print(f"[Pipeline] LLM: {config.llm.provider}/{config.llm.model}")
     print(f"[Pipeline] 端口: {config.port}")
 
@@ -51,6 +50,7 @@ async def shutdown_event():
 def serve():
     """启动服务入口点"""
     import uvicorn  # noqa: PLC0415 (局部导入)
+
     config = get_config()
     uvicorn.run(
         "code_agent_pipeline.api.main:app",

@@ -6,7 +6,7 @@
 import re
 import subprocess
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from .base import ToolBase, ToolResult
 
@@ -48,11 +48,13 @@ class CodeFormatterTool(ToolBase):
             result = handler(target)
             return ToolResult.ok(data=result)
         except subprocess.CalledProcessError as e:
-            return ToolResult.ok(data={
-                "stdout": e.stdout,
-                "stderr": e.stderr,
-                "returncode": e.returncode,
-            })
+            return ToolResult.ok(
+                data={
+                    "stdout": e.stdout,
+                    "stderr": e.stderr,
+                    "returncode": e.returncode,
+                }
+            )
         except Exception as e:
             return ToolResult.fail(error=f"格式化操作失败: {str(e)}")
 
@@ -69,7 +71,7 @@ class CodeFormatterTool(ToolBase):
             "stderr": result.stderr,
         }
 
-    def _lint(self, path: Path, select: Optional[list[str]] = None) -> dict:
+    def _lint(self, path: Path, select: list[str] | None = None) -> dict:
         """使用 ruff 检查代码"""
         args = ["ruff", "check", str(path)]
         if select:
@@ -131,7 +133,7 @@ class CodeFormatterTool(ToolBase):
         return results
 
 
-def _parse_ruff_line(line: str) -> Optional[dict]:
+def _parse_ruff_line(line: str) -> dict | None:
     """解析 ruff 输出行"""
     match = re.match(r"^(.+):(\d+):(\d+):\s([A-Z]\d+\s+.+)$", line)
     if match:
@@ -143,6 +145,3 @@ def _parse_ruff_line(line: str) -> Optional[dict]:
             "message": " ".join(match.group(4).split()[1:]),
         }
     return None
-
-
-import re

@@ -4,12 +4,9 @@
 """
 
 import argparse
-import sys
 from pathlib import Path
 
 from rich.console import Console
-from rich.tree import Tree
-from rich.markdown import Markdown
 
 from code_agent_pipeline.config import get_config
 from code_agent_pipeline.graph import compile_pipeline
@@ -49,8 +46,6 @@ def main():
         parser.print_help()
         return
 
-    config = get_config()
-
     if args.command == "run":
         _run_pipeline(args)
     elif args.command == "setup":
@@ -86,7 +81,7 @@ def _run_pipeline(args):
     final_state = PipelineState(**result)
 
     # 打印结果
-    console.print(f"\n[bold green]✓ 流水线执行完成[/bold green]")
+    console.print("\n[bold green]✓ 流水线执行完成[/bold green]")
     console.print(f"  最终阶段: {final_state.current_stage.value}")
     console.print(f"  状态: {final_state.status.value}")
     console.print(f"  迭代次数: {final_state.iteration_count}")
@@ -130,8 +125,9 @@ def _run_setup(args):
 
     # 初始化 RAG
     if args.rag_source:
-        console.print(f"\n[bold]初始化 RAG 索引...[/bold]")
+        console.print("\n[bold]初始化 RAG 索引...[/bold]")
         from ..rag.indexer import CodeIndexer  # noqa: PLC0415
+
         indexer = CodeIndexer()
         count = indexer.index_directory(args.rag_source)
         console.print(f"  ✓ 索引完成，共 {count} 个文档块")
@@ -149,11 +145,12 @@ def _run_server(args):
     if args.port:
         config.port = args.port
 
-    console.print(f"\n[bold]启动 API 服务...[/bold]")
+    console.print("\n[bold]启动 API 服务...[/bold]")
     console.print(f"  地址: http://{config.host}:{config.port}")
     console.print(f"  API 文档: http://{config.host}:{config.port}/docs")
 
     from code_agent_pipeline.api.main import serve  # noqa: PLC0415
+
     serve()
 
 

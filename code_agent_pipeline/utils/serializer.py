@@ -3,10 +3,8 @@
 """
 
 import json
-from datetime import datetime
-from typing import Any, Optional
 
-from ..models import PipelineState, PipelineStage, TaskStatus
+from ..models import PipelineStage, PipelineState, TaskStatus
 
 
 def serialize_state(state: PipelineState) -> str:
@@ -27,13 +25,11 @@ def deserialize_state(data: str) -> PipelineState:
 
 def save_state(state: PipelineState, path: str) -> None:
     """保存状态到文件"""
-    import json as _json  # noqa: PLC0415
     with open(path, "w", encoding="utf-8") as f:
         f.write(serialize_state(state))
 
 
 def load_state(path: str) -> PipelineState:
     """从文件加载状态"""
-    import json as _json  # noqa: PLC0415
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return deserialize_state(f.read())

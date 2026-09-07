@@ -4,30 +4,27 @@
 """
 
 import uuid
-from datetime import datetime
-from typing import Any, Optional
 
-from crewai import Agent, Crew, Process
-from langgraph.graph import StateGraph, END
+from crewai import Crew, Process
+from langgraph.graph import END, StateGraph
 
 from ..models import (
-    AgentRole,
-    PipelineState,
-    PipelineStage,
-    TaskStatus,
     AnalysisResult,
-    DesignResult,
     CodeGenerationResult,
-    ReviewResult,
-    TestResult,
+    DesignResult,
     DocumentationResult,
+    PipelineStage,
+    PipelineState,
+    ReviewResult,
+    TaskStatus,
+    TestResult,
 )
 from ..rag.retriever import CodeRetriever
-from .requirement_analyst import RequirementAnalyst
 from .architect import Architect
 from .coder import Coder
-from .reviewer import Reviewer
 from .doc_writer import DocWriter
+from .requirement_analyst import RequirementAnalyst
+from .reviewer import Reviewer
 from .tester import Tester
 
 
@@ -42,12 +39,11 @@ class Orchestrator:
     4. 管理重试和错误恢复
     """
 
-    def __init__(self, llm=None, rag_retriever: Optional[CodeRetriever] = None,
-                 **agent_kwargs):
+    def __init__(self, llm=None, rag_retriever: CodeRetriever | None = None, **agent_kwargs):
         self.llm = llm
         self.rag_retriever = rag_retriever
         self.agent_kwargs = agent_kwargs
-        self._graph: Optional[StateGraph] = None
+        self._graph: StateGraph | None = None
         self._compiled_graph = None
 
     def build_graph(self) -> StateGraph:
@@ -98,9 +94,13 @@ class Orchestrator:
         self._compiled_graph = self._graph.compile()
         return self._compiled_graph
 
-    def run(self, requirement: str, project_context: str = "",
-            constraints: Optional[list[str]] = None,
-            task_id: Optional[str] = None) -> PipelineState:
+    def run(
+        self,
+        requirement: str,
+        project_context: str = "",
+        constraints: list[str] | None = None,
+        task_id: str | None = None,
+    ) -> PipelineState:
         """
         运行完整流水线
 
@@ -145,7 +145,9 @@ class Orchestrator:
         state.analysis = AnalysisResult(**analysis)
         state.current_stage = PipelineStage.ANALYZE
         state.update_timestamp()
-        state.add_message("analyst", f"分析完成，复杂度: {analysis.get('estimated_complexity', 'unknown')}")
+        state.add_message(
+            "analyst", f"分析完成，复杂度: {analysis.get('estimated_complexity', 'unknown')}"
+        )
         return state.to_dict()
 
     def _node_design(self, state: PipelineState) -> dict:
@@ -163,7 +165,9 @@ class Orchestrator:
         state.design = DesignResult(**design)
         state.current_stage = PipelineStage.DESIGN
         state.update_timestamp()
-        state.add_message("architect", f"设计完成，模式: {design.get('architecture_pattern', 'unknown')}")
+        state.add_message(
+            "architect", f"设计完成，模式: {design.get('architecture_pattern', 'unknown')}"
+        )
         return state.to_dict()
 
     def _node_code(self, state: PipelineState) -> dict:
@@ -232,8 +236,7 @@ class Orchestrator:
         state.add_message("orchestrator", "开始文档生成...")
 
         code_structure = "\n".join(
-            f"- {a.file_path} ({a.language})"
-            for a in state.code_generation.artifacts
+            f"- {a.file_path} ({a.language})" for a in state.code_generation.artifacts
         )
         feature_desc = state.analysis.requirement_summary if state.analysis else ""
 
@@ -313,7 +316,9 @@ class Orchestrator:
             return ""
         parts = []
         for artifact in state.code_generation.artifacts:
-            parts.append(f"### {artifact.file_path}\n```{artifact.language}\n{artifact.content}\n```")
+            parts.append(
+                f"### {artifact.file_path}\n```{artifact.language}\n{artifact.content}\n```"
+            )
         return "\n\n".join(parts)
 
     def get_crew(self) -> Crew:

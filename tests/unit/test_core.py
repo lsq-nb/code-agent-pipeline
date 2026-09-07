@@ -3,20 +3,17 @@
 """
 
 import pytest
-from pathlib import Path
 
+from code_agent_pipeline.config import PipelineConfig, get_config, reset_config
 from code_agent_pipeline.models import (
-    PipelineState,
-    PipelineStage,
-    TaskStatus,
-    ReviewVerdict,
-    CodeQualityLevel,
-    RequirementInput,
     AnalysisResult,
     CodeArtifact,
+    PipelineStage,
+    PipelineState,
+    ReviewVerdict,
+    TaskStatus,
 )
-from code_agent_pipeline.config import get_config, reset_config, PipelineConfig
-from code_agent_pipeline.utils.validation import validate_requirement, validate_code_output
+from code_agent_pipeline.utils.validation import validate_code_output, validate_requirement
 
 
 class TestPipelineState:
@@ -51,6 +48,7 @@ class TestPipelineState:
 
     def test_update_timestamp(self):
         import time  # noqa: PLC0415
+
         state = PipelineState()
         time.sleep(0.01)
         state.update_timestamp()
@@ -141,18 +139,21 @@ class TestTools:
 
     def test_tool_result_ok(self):
         from code_agent_pipeline.tools.base import ToolResult  # noqa: PLC0415
+
         result = ToolResult.ok(data={"key": "value"})
         assert result.success is True
         assert result.data == {"key": "value"}
 
     def test_tool_result_fail(self):
         from code_agent_pipeline.tools.base import ToolResult  # noqa: PLC0415
+
         result = ToolResult.fail(error="something wrong")
         assert result.success is False
         assert result.error == "something wrong"
 
     def test_file_tool_write_read(self, tmp_path):
         from code_agent_pipeline.tools.file_tool import FileTool  # noqa: PLC0415
+
         tool = FileTool(root=tmp_path)
         result = tool.execute("write", path="test.txt", content="hello world")
         assert result.success is True
@@ -162,6 +163,7 @@ class TestTools:
 
     def test_git_tool_status_no_repo(self, tmp_path):
         from code_agent_pipeline.tools.git_tool import GitTool  # noqa: PLC0415
+
         tool = GitTool(workdir=tmp_path)
         # 非 Git 仓库应返回错误
         result = tool.execute("status")

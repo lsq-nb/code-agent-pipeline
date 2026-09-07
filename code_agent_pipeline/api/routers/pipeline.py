@@ -6,8 +6,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from ..models import PipelineState, RequirementInput, PipelineResponse, PipelineStage
-from ..graph import compile_pipeline
+from ...models import PipelineState, RequirementInput, PipelineResponse, PipelineStage
+from ...graph import compile_pipeline
 
 router = APIRouter()
 

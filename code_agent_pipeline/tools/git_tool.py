@@ -5,7 +5,7 @@ Git 操作工具
 
 import subprocess
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from git import Repo, GitCommandError
 

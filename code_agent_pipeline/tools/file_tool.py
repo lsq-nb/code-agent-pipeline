@@ -3,10 +3,10 @@
 用于读写、搜索、创建项目文件
 """
 
-import json
+from typing import Any, Optional
+
 import re
 from pathlib import Path
-from typing import Optional
 
 from .base import ToolBase, ToolResult
 
@@ -72,8 +72,11 @@ class FileTool(ToolBase):
         """写入文件内容"""
         full_path = self._resolve(path)
         full_path.parent.mkdir(parents=True, exist_ok=True)
-        mode = "a" if append else "w"
-        full_path.write_text(content, encoding="utf-8", mode=mode)
+        if append:
+            with open(full_path, "a", encoding="utf-8") as f:
+                f.write(content)
+        else:
+            full_path.write_text(content, encoding="utf-8")
         return {
             "path": str(full_path),
             "bytes_written": len(content.encode("utf-8")),

@@ -154,9 +154,9 @@ class CodeGenerationResult(BaseModel):
 class ReviewResult(BaseModel):
     """代码审查结果"""
 
-    verdict: ReviewVerdict
-    quality_score: float = Field(ge=0.0, le=10.0)
-    quality_level: CodeQualityLevel
+    verdict: ReviewVerdict = ReviewVerdict.COMMENT_ONLY
+    quality_score: float = Field(default=0.0, ge=0.0, le=10.0)
+    quality_level: CodeQualityLevel = CodeQualityLevel.NEEDS_IMPROVEMENT
     issues: list[dict[str, Any]] = Field(default=[])
     suggestions: list[str] = Field(default=[])
     security_findings: list[str] = Field(default=[])
@@ -246,3 +246,37 @@ class PipelineState(BaseModel):
     def to_dict(self) -> dict[str, Any]:
         """转换为字典（序列化用）"""
         return self.model_dump(exclude_unset=True, by_alias=True)
+
+
+# ── API 响应模型 ──────────────────────────────────────────────
+
+
+class PipelineResponse(BaseModel):
+    """流水线执行响应"""
+
+    success: bool
+    task_id: str
+    stage: str
+    status: str
+    message: str = ""
+    result: Optional[dict[str, Any]] = None
+    errors: list[str] = Field(default=[])
+
+
+class TaskHistoryItem(BaseModel):
+    """历史任务条目"""
+
+    task_id: str
+    requirement: str
+    created_at: datetime
+    final_stage: str
+    final_status: str
+    summary: str = ""
+
+
+class HealthResponse(BaseModel):
+    """健康检查响应"""
+
+    status: str
+    version: str
+    components: dict[str, str] = Field(default_factory=dict)

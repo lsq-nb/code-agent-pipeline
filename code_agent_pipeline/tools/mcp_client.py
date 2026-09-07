@@ -7,7 +7,6 @@ import asyncio
 import json
 from typing import Any, Optional
 
-
 class MCPClient:
     """
     MCP 客户端实现
@@ -56,7 +55,7 @@ class MCPClient:
             await self.connect()
         return self._tools
 
-    async def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> Any:
+    def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> Any:
         """
         调用 MCP 工具
 
@@ -68,6 +67,8 @@ class MCPClient:
             工具执行结果
         """
         if tool_name not in self._tools:
+            available = list(self._tools.keys())
+            raise ValueError("Tool '{}' not found. Available: {}".format(tool_name, available))
             available = list(self._tools.keys())
             raise ValueError(f"工具 '{tool_name}' 不存在。可用工具: {available}")
 

@@ -11,9 +11,9 @@ from rich.console import Console
 from rich.tree import Tree
 from rich.markdown import Markdown
 
-from ..config import get_config
-from ..graph import compile_pipeline
-from ..models import PipelineState, TaskStatus
+from code_agent_pipeline.config import get_config
+from code_agent_pipeline.graph import compile_pipeline
+from code_agent_pipeline.models import PipelineState, TaskStatus
 
 console = Console()
 

@@ -154,41 +154,51 @@ class CodeIndexer:
         return "\n".join(extracted)
 
     def _chunk_text(self, text: str) -> list[str]:
-        """
-        将文本分割为重叠的块
-
-        按段落分割，确保块大小不超过 chunk_size
-        """
+        """将文本分割为重叠的块。按段落分割，超长段落按行/字符切分。"""
         paragraphs = re.split(r"\n\s*\n", text)
         chunks = []
-        current_chunk = ""
+        current = ""
 
         for para in paragraphs:
             para = para.strip()
             if not para:
                 continue
 
-            # 如果单个段落太长，按行分割
+            # 超长段落：先按行分割
             if len(para) > self.chunk_size:
-                lines = para.split("\n")
-                for line in lines:
-                    if len(current_chunk) + len(line) + 1 > self.chunk_size and current_chunk:
-                        chunks.append(current_chunk.strip())
-                        # 保留重叠
-                        overlap_start = max(0, len(current_chunk) - self.chunk_overlap)
-                        current_chunk = current_chunk[overlap_start:] + line + "\n"
+                for line in para.split("\n"):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    # 如果单行仍然超长，按字符切分
+                    if len(line) > self.chunk_size:
+                        if current:
+                            chunks.append(current.strip())
+                            os_start = max(0, len(current) - self.chunk_overlap)
+                            current = current[os_start:]
+                        # 字符级切分
+                        for i in range(0, len(line), self.chunk_size - self.chunk_overlap):
+                            chunk = line[i:i + self.chunk_size]
+                            if chunk.strip():
+                                chunks.append(chunk.strip())
+                        current = ""
+                    elif len(current) + len(line) + 2 > self.chunk_size and current:
+                        chunks.append(current.strip())
+                        os_start = max(0, len(current) - self.chunk_overlap)
+                        current = current[os_start:] + "\n" + line
                     else:
-                        current_chunk += line + "\n"
+                        current += "\n" + line
                 continue
 
-            if len(current_chunk) + len(para) + 2 > self.chunk_size and current_chunk:
-                chunks.append(current_chunk.strip())
-                overlap_start = max(0, len(current_chunk) - self.chunk_overlap)
-                current_chunk = current_chunk[overlap_start:] + "\n\n" + para
+            # 正常段落：检查是否需要切分
+            if len(current) + len(para) + 2 > self.chunk_size and current:
+                chunks.append(current.strip())
+                os_start = max(0, len(current) - self.chunk_overlap)
+                current = current[os_start:] + "\n\n" + para
             else:
-                current_chunk += "\n\n" + para
+                current += "\n\n" + para
 
-        if current_chunk.strip():
-            chunks.append(current_chunk.strip())
+        if current.strip():
+            chunks.append(current.strip())
 
-        return [c for c in chunks if len(c) > 10]  # 过滤过短的块
+        return [c for c in chunks if len(c) > 10]

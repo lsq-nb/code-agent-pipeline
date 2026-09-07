@@ -58,4 +58,4 @@ jobs:
           docker run -d --name test-container -p 8000:8000 code-agent-pipeline:latest
           sleep 5
           curl -f http://localhost:8000/api/health || exit 1
-          docker rm test-container
+          docker stop test-container && docker rm test-container

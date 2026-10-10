@@ -42,7 +42,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-org/code-agent-pipeline.git
+git clone https://gitee.com/zglsqnb/code-agent-pipeline.git
 cd code-agent-pipeline
 
 # 安装依赖
@@ -78,15 +78,14 @@ cp .env.example .env
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
-| `LLM_PROVIDER` | LLM 提供商 | `openai` |
-| `LLM_MODEL` | 模型名称 | `agnes-3.0-flash` |
-| `OPENAI_API_KEY` | LLM API 密钥（接入 Agnes 时填 Agnes 的 Key） | - |
-| `OPENAI_BASE_URL` | LLM API 端点（接入 Agnes 时填 `https://apihub.agnes-ai.com/v1`） | - |
+| `LLM_PROVIDER` | LLM 提供商 |
+| `LLM_MODEL` | 模型名称 |
+| `OPENAI_API_KEY` | LLM API 密钥 | - |
+| `OPENAI_BASE_URL` | LLM API 端点 | - |
 | `GRAPH_MAX_ITERATIONS` | 最大迭代次数 | `10` |
 | `RAG_TOP_K` | 检索返回条数 | `5` |
 | `DOCKER_ENABLED` | 是否启用 Docker | `false` |
 
-> **接入 Agnes（agnes-3.0-flash）**：通过 OpenAI 兼容协议接入。把 Agnes 的 API Key 填到 `OPENAI_API_KEY`、Agnes 端点 `https://apihub.agnes-ai.com/v1` 填到 `OPENAI_BASE_URL`，`LLM_MODEL` 保持默认 `agnes-3.0-flash` 即可。所有流水线节点统一通过 `create_llm()` 工厂读取该配置，无需再改代码。
 
 ## 🚀 快速开始
 

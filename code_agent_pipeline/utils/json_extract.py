@@ -25,7 +25,7 @@ def extract_json(raw: str) -> dict | None:
     candidates = [base]
     stripped = base.lstrip()
     if not stripped.startswith("{"):
-        candidates.append(base[base.find("{"):])
+        candidates.append(base[base.find("{") :])
 
     for cand in candidates:
         start = cand.find("{")

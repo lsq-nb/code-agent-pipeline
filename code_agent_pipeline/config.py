@@ -120,12 +120,8 @@ class PipelineConfig(BaseSettings):
         """回填扁平别名到嵌套 LLM 配置。"""
         self.llm.provider = self.llm_provider or self.llm.provider
         self.llm.model = self.llm_model or self.llm.model
-        self.llm.api_key = (
-            self.llm_api_key or self.openai_api_key or self.llm.api_key
-        )
-        self.llm.base_url = (
-            self.llm_base_url or self.openai_base_url or self.llm.base_url
-        )
+        self.llm.api_key = self.llm_api_key or self.openai_api_key or self.llm.api_key
+        self.llm.base_url = self.llm_base_url or self.openai_base_url or self.llm.base_url
 
 
 # 全局配置实例（懒加载）

@@ -4,6 +4,7 @@
 """
 
 import argparse
+import asyncio
 from pathlib import Path
 
 from rich.console import Console
@@ -76,8 +77,8 @@ def _run_pipeline(args):
 
     console.print("\n[bold green]开始执行...[/bold green]\n")
 
-    # 执行流水线
-    result = graph.invoke(state)
+    # 执行流水线（节点均为 async，使用 ainvoke）
+    result = asyncio.run(graph.ainvoke(state))
     final_state = PipelineState(**result)
 
     # 打印结果

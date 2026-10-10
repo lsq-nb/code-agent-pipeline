@@ -26,6 +26,7 @@ def create_llm(model: str | None = None, temperature: float | None = None):
             temperature=temp,
             api_key=config.llm.api_key,
             base_url=config.llm.base_url,
+            max_tokens=config.llm.max_tokens,
         )
     elif provider == "anthropic":
         from langchain_anthropic import ChatAnthropic  # noqa: PLC0415
@@ -33,9 +34,10 @@ def create_llm(model: str | None = None, temperature: float | None = None):
         return ChatAnthropic(
             model=model,
             temperature=temp,
+            max_tokens=config.llm.max_tokens,
         )
     else:
-        # 默认使用 OpenAI 兼容接口
+        # 默认使用 OpenAI 兼容接口（可用于 Agnes、Ollama 等）
         from langchain_openai import ChatOpenAI  # noqa: PLC0415
 
         return ChatOpenAI(
@@ -43,6 +45,7 @@ def create_llm(model: str | None = None, temperature: float | None = None):
             temperature=temp,
             api_key=config.llm.api_key or "dummy",
             base_url=config.llm.base_url or "http://localhost:8000/v1",
+            max_tokens=config.llm.max_tokens,
         )
 
 

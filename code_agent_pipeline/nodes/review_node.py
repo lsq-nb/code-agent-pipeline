@@ -3,8 +3,6 @@
 对生成的代码进行质量审查、安全检查、性能分析
 """
 
-import json
-import re
 from typing import Any
 
 from ..models import PipelineStage, PipelineState, ReviewResult, ReviewVerdict
@@ -56,9 +54,10 @@ async def review_node(state: PipelineState) -> dict[str, Any]:
 
 
 async def _review_single_file(artifact, state: PipelineState) -> dict:
-    """审查单个代码文件"""
+    """审查单个代码文件（统一走 create_llm 工厂，读取全局配置）"""
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415
+
+    from ..utils.llm import create_llm  # noqa: PLC0415 (局部导入)
 
     prompt = f"""\
 请审查以下代码的质量、安全性和性能：
@@ -83,20 +82,19 @@ async def _review_single_file(artifact, state: PipelineState) -> dict:
 ```
 """
 
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.1)
+    llm = create_llm(temperature=0.1)
     response = await llm.ainvoke([HumanMessage(content=prompt)])
 
     return _parse_review_response(response.content)
 
 
 def _parse_review_response(content: str) -> dict:
-    """解析审查响应"""
-    json_match = re.search(r"```json\s*(\{.*?\})\s*```", content, re.DOTALL)
-    if json_match:
-        try:
-            return json.loads(json_match.group(1))
-        except json.JSONDecodeError:
-            pass
+    """解析审查响应（统一用 extract_json 提取，容忍多种 LLM 输出形态）"""
+    from ..utils.json_extract import extract_json  # noqa: PLC0415 (局部导入)
+
+    data = extract_json(content)
+    if data is not None:
+        return data
     return {"issues": [], "suggestions": ["无法解析审查结果"], "quality_score": 5.0}
 
 

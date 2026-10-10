@@ -3,8 +3,6 @@
 生成并执行测试用例，验证代码质量
 """
 
-import json
-import re
 from typing import Any
 
 from ..models import PipelineStage, PipelineState, TestResult
@@ -38,9 +36,10 @@ async def test_node(state: PipelineState) -> dict[str, Any]:
 
 
 async def _generate_test_cases(state: PipelineState) -> dict:
-    """生成测试用例"""
+    """生成测试用例（统一走 create_llm 工厂，读取全局配置）"""
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415
+
+    from ..utils.llm import create_llm  # noqa: PLC0415 (局部导入)
 
     code_snippet = ""
     if state.code_generation:
@@ -66,15 +65,14 @@ async def _generate_test_cases(state: PipelineState) -> dict:
 ```
 """
 
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.2)
+    llm = create_llm(temperature=0.2)
     response = await llm.ainvoke([HumanMessage(content=prompt)])
 
-    json_match = re.search(r"```json\s*(\{.*?\})\s*```", response.content, re.DOTALL)
-    if json_match:
-        try:
-            return json.loads(json_match.group(1))
-        except json.JSONDecodeError:
-            pass
+    from ..utils.json_extract import extract_json  # noqa: PLC0415 (局部导入)
+
+    data = extract_json(response.content)
+    if data is not None:
+        return data
     return {"test_cases": [], "coverage_target": 80}
 
 

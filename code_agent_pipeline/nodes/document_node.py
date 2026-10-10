@@ -3,8 +3,6 @@
 生成 README、API 文档、用户指南等项目文档
 """
 
-import json
-import re
 from typing import Any
 
 from ..models import DocumentationResult, PipelineStage, PipelineState
@@ -75,33 +73,31 @@ def _build_document_prompt(state: PipelineState) -> str:
 
 
 async def _call_llm_document(prompt: str, state: PipelineState) -> str:
-    """调用 LLM 生成文档"""
+    """调用 LLM 生成文档（统一走 create_llm 工厂，读取全局配置）"""
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415
 
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.2)
+    from ..utils.llm import create_llm  # noqa: PLC0415 (局部导入)
+
+    llm = create_llm(temperature=0.2)
     response = await llm.ainvoke([HumanMessage(content=prompt)])
     return response.content
 
 
 def _parse_document_result(raw: str, state: PipelineState) -> DocumentationResult:
     """解析文档生成结果"""
-    json_match = re.search(r"```json\s*(\{.*?\})\s*```", raw, re.DOTALL)
-    if json_match:
+    from ..utils.json_extract import extract_json  # noqa: PLC0415 (局部导入)
+
+    data = extract_json(raw)
+    if data is not None:
         try:
-            data = json.loads(json_match.group(1))
             return DocumentationResult(**data)
-        except (json.JSONDecodeError, ValueError):
+        except (ValueError, KeyError, TypeError):
             pass
 
-    try:
-        data = json.loads(raw)
-        return DocumentationResult(**data)
-    except (json.JSONDecodeError, ValueError):
-        return DocumentationResult(
-            readme=raw[:1000],
-            api_docs="",
-            user_guide="",
-            changelog="",
-            contributing_guidelines="",
-        )
+    return DocumentationResult(
+        readme=(raw or "")[:1000],
+        api_docs="",
+        user_guide="",
+        changelog="",
+        contributing_guidelines="",
+    )

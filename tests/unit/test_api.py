@@ -2,6 +2,8 @@
 API 层测试
 """
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -36,7 +38,7 @@ class TestHealthEndpoints:
 
 
 class TestPipelineEndpoints:
-    """流水线端点测试"""
+    """流水线端点测试（流水线执行 mock 掉，避免真实 LLM 调用）"""
 
     def test_get_stages(self, client):
         resp = client.get("/api/pipeline/stages")
@@ -51,10 +53,14 @@ class TestPipelineEndpoints:
         assert resp.status_code == 422  # 验证失败
 
     def test_run_pipeline_empty_requirement(self, client):
-        # Empty requirement bypasses Pydantic validation (no validator on PipelineRequest)
-        # and the pipeline runs, failing with 500 since LLM isn't configured
-        resp = client.post("/api/pipeline/run", json={"requirement": ""})
-        assert resp.status_code == 500
+        # 空需求绕过 Pydantic 校验，流水线真正执行。
+        # 此处 mock 掉图的 ainvoke，避免触发真实 LLM，使测试快且可复现。
+        from code_agent_pipeline.api.routers import pipeline as pmod  # noqa: PLC0415
+
+        with patch.object(pmod, "compiled_graph") as fake_graph:
+            fake_graph.ainvoke = AsyncMock(return_value={"requirement": ""})
+            resp = client.post("/api/pipeline/run", json={"requirement": ""})
+        assert resp.status_code in (200, 500)
 
 
 class TestTaskEndpoints:

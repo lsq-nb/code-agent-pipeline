@@ -4,11 +4,11 @@
 """
 
 import json
-import re
 from pathlib import Path
 from typing import Any
 
 from ..models import CodeArtifact, CodeGenerationResult, PipelineStage, PipelineState
+from ..utils.json_extract import extract_json
 
 
 async def code_node(state: PipelineState) -> dict[str, Any]:
@@ -86,47 +86,39 @@ def _build_code_prompt(state: PipelineState) -> str:
 
 
 async def _call_llm_code(prompt: str, state: PipelineState) -> str:
-    """调用 LLM 生成代码"""
+    """调用 LLM 生成代码（统一走 create_llm 工厂，读取全局配置）"""
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415
 
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.1)
+    from ..utils.llm import create_llm  # noqa: PLC0415 (局部导入)
+
+    llm = create_llm(temperature=0.1)
     response = await llm.ainvoke([HumanMessage(content=prompt)])
     return response.content
 
 
 def _parse_code_result(raw: str, state: PipelineState) -> CodeGenerationResult:
-    """解析代码生成结果"""
-    json_match = re.search(r"```json\s*(\{.*?\})\s*```", raw, re.DOTALL)
-    if json_match:
-        try:
-            data = json.loads(json_match.group(1))
-            artifacts = [CodeArtifact(**a) for a in data.get("artifacts", [])]
-            return CodeGenerationResult(
-                artifacts=artifacts,
-                build_instructions=data.get("build_instructions", ""),
-                environment_requirements=data.get("environment_requirements", []),
-                notes=data.get("notes", ""),
-            )
-        except (json.JSONDecodeError, ValueError):
-            pass
-
-    try:
-        data = json.loads(raw)
-        artifacts = [CodeArtifact(**a) for a in data.get("artifacts", [])]
-        return CodeGenerationResult(
-            artifacts=artifacts,
-            build_instructions=data.get("build_instructions", ""),
-            environment_requirements=data.get("environment_requirements", []),
-            notes=data.get("notes", ""),
-        )
-    except (json.JSONDecodeError, ValueError):
+    """解析代码生成结果（统一用 extract_json 提取，容忍多种 LLM 输出形态）"""
+    data = extract_json(raw)
+    if data is None:
+        # 降级：构造最小可用结果
         return CodeGenerationResult(
             artifacts=[],
             build_instructions="",
             environment_requirements=[],
-            notes=raw[:500],
+            notes=raw[:500] if raw else "",
         )
+
+    try:
+        artifacts = [CodeArtifact(**a) for a in data.get("artifacts", [])]
+    except (KeyError, TypeError, ValueError):
+        artifacts = []
+
+    return CodeGenerationResult(
+        artifacts=artifacts,
+        build_instructions=data.get("build_instructions", ""),
+        environment_requirements=data.get("environment_requirements", []),
+        notes=data.get("notes", ""),
+    )
 
 
 def _save_artifacts(code_result: CodeGenerationResult, state: PipelineState) -> None:

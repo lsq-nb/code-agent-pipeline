@@ -3,8 +3,6 @@
 将需求拆解为可执行任务，输出 AnalysisResult
 """
 
-import json
-import re
 from typing import Any
 
 from ..models import AnalysisResult, PipelineStage, PipelineState, TaskStatus
@@ -79,45 +77,36 @@ def _build_analysis_prompt(state: PipelineState) -> str:
 
 
 async def _call_llm_analysis(prompt: str, state: PipelineState) -> str:
-    """调用 LLM 执行分析"""
+    """调用 LLM 执行分析（统一走 create_llm 工厂，读取全局配置）"""
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415 (局部导入)
 
-    from ..config import get_config  # noqa: PLC0415
+    from ..utils.llm import create_llm  # noqa: PLC0415 (局部导入)
 
-    config = get_config()
-    llm = ChatOpenAI(
-        model=config.llm.model,
-        temperature=config.llm.temperature,
-    )
+    llm = create_llm()
     response = await llm.ainvoke([HumanMessage(content=prompt)])
     return response.content
 
 
 def _parse_analysis_result(raw: str, state: PipelineState) -> AnalysisResult:
     """解析分析结果为结构化对象"""
-    # 提取 JSON
-    json_match = re.search(r"```json\s*(\{.*?\})\s*```", raw, re.DOTALL)
-    if json_match:
+    # 提取 JSON（容忍围栏/裸JSON/前导文字/嵌套括号）
+    from ..utils.json_extract import extract_json  # noqa: PLC0415 (局部导入)
+
+    data = extract_json(raw)
+    if data is not None:
         try:
-            data = json.loads(json_match.group(1))
             return AnalysisResult(**data)
-        except (json.JSONDecodeError, ValueError):
+        except (ValueError, KeyError, TypeError):
             pass
 
-    # 尝试直接解析
-    try:
-        data = json.loads(raw)
-        return AnalysisResult(**data)
-    except (json.JSONDecodeError, ValueError):
-        # 降级：构造最小可用结果
-        return AnalysisResult(
-            requirement_summary=raw[:200],
-            functional_requirements=["待分析"],
-            non_functional_requirements=[],
-            technical_constraints=[],
-            risk_factors=[],
-            suggested_tech_stack=[],
-            estimated_complexity="medium",
-            tasks=[],
-        )
+    # 降级：构造最小可用结果
+    return AnalysisResult(
+        requirement_summary=(raw or "")[:200],
+        functional_requirements=["待分析"],
+        non_functional_requirements=[],
+        technical_constraints=[],
+        risk_factors=[],
+        suggested_tech_stack=[],
+        estimated_complexity="medium",
+        tasks=[],
+    )

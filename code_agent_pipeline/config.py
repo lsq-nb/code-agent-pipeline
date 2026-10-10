@@ -6,14 +6,14 @@
 from pathlib import Path
 
 from pydantic import BaseModel, Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class LLMConfig(BaseModel):
     """大语言模型配置"""
 
     provider: str = Field(default="openai", description="LLM 提供商")
-    model: str = Field(default="gpt-4o", description="模型名称")
+    model: str = Field(default="agnes-3.0-flash", description="模型名称")
     temperature: float = Field(default=0.2, ge=0.0, le=1.0, description="采样温度")
     max_tokens: int = Field(default=4096, description="最大输出 token 数")
     api_key: str | None = Field(default=None, description="API 密钥")
@@ -55,13 +55,28 @@ class PipelineConfig(BaseSettings):
 
     环境变量（可在 .env 文件中设置）：
         LLM_PROVIDER: 默认 openai
-        LLM_MODEL: 默认 gpt-4o
-        OPENAI_API_KEY: OpenAI API 密钥
-        OPENAI_BASE_URL: OpenAI API 端点
+        LLM_MODEL: 默认 agnes-3.0-flash
+        LLM_API_KEY / OPENAI_API_KEY: LLM API 密钥
+        LLM_BASE_URL / OPENAI_BASE_URL: LLM API 端点
         GRAPH_MAX_ITERATIONS: 默认 10
         RAG_TOP_K: 默认 5
         DOCKER_ENABLED: 默认 false
+
+    说明：
+        嵌套配置（llm / graph / rag / agents）通过 env_nested_delimiter="__"
+        映射环境变量（如 LLM__PROVIDER、LLM__API_KEY）。
+        为兼容旧写法，额外提供扁平别名（LLM_API_KEY、OPENAI_API_KEY 等），
+        在 model_post_init 中回填到嵌套对象。
+        extra="ignore" 保证未知 env 不会触发 ValidationError。
     """
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+        env_nested_delimiter="__",
+    )
 
     # 项目路径
     project_root: Path = Field(default=Path(__file__).parent.parent)
@@ -93,10 +108,24 @@ class PipelineConfig(BaseSettings):
     # MCP 配置
     mcp_servers: dict = Field(default_factory=dict)
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    # 扁平别名：兼容 LLM_PROVIDER / LLM_MODEL / OPENAI_API_KEY 等旧写法
+    llm_provider: str | None = Field(default=None, exclude=True)
+    llm_model: str | None = Field(default=None, exclude=True)
+    llm_api_key: str | None = Field(default=None, exclude=True)
+    llm_base_url: str | None = Field(default=None, exclude=True)
+    openai_api_key: str | None = Field(default=None, exclude=True)
+    openai_base_url: str | None = Field(default=None, exclude=True)
+
+    def model_post_init(self, __context) -> None:  # noqa: ANN001
+        """回填扁平别名到嵌套 LLM 配置。"""
+        self.llm.provider = self.llm_provider or self.llm.provider
+        self.llm.model = self.llm_model or self.llm.model
+        self.llm.api_key = (
+            self.llm_api_key or self.openai_api_key or self.llm.api_key
+        )
+        self.llm.base_url = (
+            self.llm_base_url or self.openai_base_url or self.llm.base_url
+        )
 
 
 # 全局配置实例（懒加载）

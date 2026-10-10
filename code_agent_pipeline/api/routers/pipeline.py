@@ -52,8 +52,8 @@ async def run_pipeline(req: PipelineRequest):
     _active_tasks[task_id] = state
 
     try:
-        # 运行流水线
-        result = compiled_graph.invoke(state)
+        # 运行流水线（节点均为 async，需使用 ainvoke）
+        result = await compiled_graph.ainvoke(state)
         final_state = PipelineState(**result)
         final_state.status = TaskStatus.COMPLETED
         _active_tasks[task_id] = final_state

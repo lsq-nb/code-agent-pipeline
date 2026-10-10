@@ -4,7 +4,6 @@
 """
 
 import json
-import re
 from typing import Any
 
 from ..models import DesignResult, PipelineStage, PipelineState
@@ -72,35 +71,33 @@ def _build_design_prompt(state: PipelineState) -> str:
 
 
 async def _call_llm_design(prompt: str, state: PipelineState) -> str:
-    """调用 LLM 执行设计"""
+    """调用 LLM 执行设计（统一走 create_llm 工厂，读取全局配置）"""
     from langchain_core.messages import HumanMessage  # noqa: PLC0415
-    from langchain_openai import ChatOpenAI  # noqa: PLC0415
 
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.3)
+    from ..utils.llm import create_llm  # noqa: PLC0415 (局部导入)
+
+    llm = create_llm(temperature=0.3)
     response = await llm.ainvoke([HumanMessage(content=prompt)])
     return response.content
 
 
 def _parse_design_result(raw: str, state: PipelineState) -> DesignResult:
     """解析设计结果为结构化对象"""
-    json_match = re.search(r"```json\s*(\{.*?\})\s*```", raw, re.DOTALL)
-    if json_match:
+    from ..utils.json_extract import extract_json  # noqa: PLC0415 (局部导入)
+
+    data = extract_json(raw)
+    if data is not None:
         try:
-            data = json.loads(json_match.group(1))
             return DesignResult(**data)
-        except (json.JSONDecodeError, ValueError):
+        except (ValueError, KeyError, TypeError):
             pass
 
-    try:
-        data = json.loads(raw)
-        return DesignResult(**data)
-    except (json.JSONDecodeError, ValueError):
-        return DesignResult(
-            architecture_pattern="unknown",
-            module_structure=["待设计"],
-            api_design=[],
-            data_flow="",
-            error_handling_strategy="",
-            security_considerations=[],
-            diagram_description="",
-        )
+    return DesignResult(
+        architecture_pattern="unknown",
+        module_structure=["待设计"],
+        api_design=[],
+        data_flow="",
+        error_handling_strategy="",
+        security_considerations=[],
+        diagram_description="",
+    )

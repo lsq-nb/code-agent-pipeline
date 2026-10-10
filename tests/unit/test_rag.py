@@ -2,6 +2,8 @@
 RAG 模块测试
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from code_agent_pipeline.rag.embedder import EmbeddingService
@@ -9,25 +11,46 @@ from code_agent_pipeline.rag.indexer import CodeIndexer
 from code_agent_pipeline.rag.retriever import CodeRetriever
 
 
+def _mock_openai_embedding(value: int = 1):
+    """构造一个返回确定性向量的 OpenAI embeddings mock。
+
+    让 embedding 测试不依赖真实 LLM 服务，既快又可复现。
+    返回的 embedding 是长度 4 的确定性向量，便于断言。
+    """
+    fake_client = MagicMock()
+    fake_response = MagicMock()
+    fake_response.data = [MagicMock(embedding=[float(value)] * 4)]
+    fake_client.embeddings.create.return_value = fake_response
+    return fake_client
+
+
 class TestEmbeddingService:
-    """嵌入服务测试"""
+    """嵌入服务测试（mock OpenAI 客户端，避免真实网络调用）"""
 
     def test_get_embedding(self):
-        service = EmbeddingService(api_key="test-key")
-        embedding = service.get_embedding("hello world")
-        assert isinstance(embedding, list)
-        assert len(embedding) > 0
+        with patch("openai.OpenAI") as mock_cls:
+            mock_cls.return_value = _mock_openai_embedding(1)
+            service = EmbeddingService(api_key="test-key")
+            embedding = service.get_embedding("hello world")
+            assert isinstance(embedding, list)
+            assert len(embedding) > 0
 
     def test_get_embeddings_batch(self):
-        service = EmbeddingService(api_key="test-key")
-        embeddings = service.get_embeddings(["text1", "text2"])
-        assert len(embeddings) == 2
+        with patch("openai.OpenAI") as mock_cls:
+            mock_cls.return_value = _mock_openai_embedding(2)
+            service = EmbeddingService(api_key="test-key")
+            embeddings = service.get_embeddings(["text1", "text2"])
+            assert len(embeddings) == 2
 
     def test_cache(self):
-        service = EmbeddingService(api_key="test-key")
-        e1 = service.get_embedding("same text")
-        e2 = service.get_embedding("same text")
-        assert e1 == e2
+        with patch("openai.OpenAI") as mock_cls:
+            mock_cls.return_value = _mock_openai_embedding(3)
+            service = EmbeddingService(api_key="test-key")
+            e1 = service.get_embedding("same text")
+            e2 = service.get_embedding("same text")
+            assert e1 == e2
+            # 缓存命中后不应再次调用 OpenAI
+            assert mock_cls.return_value.embeddings.create.call_count == 1
 
 
 class TestCodeRetriever:

@@ -9,8 +9,9 @@ services:
       - "${PORT:-8000}:8000"
     environment:
       - LLM_PROVIDER=${LLM_PROVIDER:-openai}
-      - LLM_MODEL=${LLM_MODEL:-gpt-4o}
+      - LLM_MODEL=${LLM_MODEL:-agnes-3.0-flash}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://apihub.agnes-ai.com/v1}
       - GRAPH_MAX_ITERATIONS=${GRAPH_MAX_ITERATIONS:-10}
       - RAG_TOP_K=${RAG_TOP_K:-5}
       - DOCKER_ENABLED=${DOCKER_ENABLED:-false}
